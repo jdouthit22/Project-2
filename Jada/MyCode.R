@@ -34,15 +34,22 @@ race_data |>
 
 
 #percentage of sex & smoking status
+unique(SCD$gender)
+
 sex_table = table(SCD$gender)
 view(sex_table)
 race_new |>
   count(smoking_status, gender) |>
   ggplot(aes(x = smoking_status, y = n, 
              fill = gender)) +
-  geom_col(position = "fill")
+  geom_col() +
+  labs(
+    title = "Gender vs. Smoking Status",
+    x = "Smoking Status",
+    y = "count"
+  ) +
+  theme(legend.position = "bottom")
 
-unique(SCD$gender)
 
 
 
