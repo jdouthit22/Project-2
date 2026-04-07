@@ -8,11 +8,6 @@ Race = SCD$race
 print(Race)
 
 
-#Pie Chart
-
-mean(SCD$bmi)
-
-
 White = filter(SCD, Race == "White")
 
 
@@ -83,6 +78,46 @@ race_new |>
   ) +
   theme(legend.position = "bottom")
 
+#highest and lowest by race
+
+# White
+# 51.7
+# 68
+Highest_White <- race_new %>%
+  select(race,bmi, age) %>%
+  filter(race == "White") %>%
+  arrange(desc(bmi)) %>%
+  head(1)
+
+# race: White
+# bmi: 12.8
+# age: 55
+Lowest_White <- race_new %>%
+  select(race,bmi, age) %>%
+  filter(race == "White") %>%
+  arrange(bmi) %>%
+  head(1)
+
+# race: Black or African American
+# bmi: 51.7
+# age:82
+Highest_Black <- race_new %>%
+  select(race,bmi, age) %>%
+  filter(race == "Black or African American") %>%
+  arrange(desc(bmi)) %>%
+  head(1)
+
+
+# race: Black or African American
+# bmi: 12.6
+# age: 57
+Lowest_Black <- race_new %>%
+  select(race,bmi, age) %>%
+  filter(race == "Black or African American") %>%
+  arrange(bmi) %>%
+  head(1)
+
+
 #All races
 race_new |>
   filter(race %in% c(
@@ -102,3 +137,8 @@ race_new |>
   ) +
   theme(legend.position = "bottom")
 
+
+library(GGally)
+race_new |> 
+  select(age, bmi) |> 
+  ggpairs()
