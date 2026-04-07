@@ -33,9 +33,16 @@ race_data |>
   geom_col()
 
 
-#percentage of sex 
+#percentage of sex & smoking status
+sex_table = table(SCD$gender)
+view(sex_table)
+race_new |>
+  count(smoking_status, gender) |>
+  ggplot(aes(x = smoking_status, y = n, 
+             fill = gender)) +
+  geom_col(position = "fill")
 
-
+unique(SCD$gender)
 
 
 
