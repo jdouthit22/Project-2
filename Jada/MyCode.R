@@ -40,9 +40,10 @@ race_data |>
 
 
 #plotting the ages of patients (scatterplots)
-Race = select(SCD, race, age)
 race_new <- mutate(SCD,
                    age = 2026 - birth_year)
+
+Race = select(race_new, race, age)
 
 
 race_new$age_group <- cut(
