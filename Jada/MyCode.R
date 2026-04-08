@@ -8,14 +8,9 @@ Race = SCD$race
 print(Race)
 
 
-White = filter(SCD, Race == "White")
-
-
 #Bar chart, show percentage   of total patients vs. BMI (background)
-Race_table = table(SCD$race)
 unique(SCD$race)
 Race_table = table(SCD$race)
-view(Race_table)
 
 #convert to percentages
 race_data <- SCD %>%
@@ -32,7 +27,6 @@ race_data |>
 unique(SCD$gender)
 
 sex_table = table(SCD$gender)
-view(sex_table)
 race_new |>
   count(smoking_status, gender) |>
   ggplot(aes(x = smoking_status, y = n, 
@@ -45,38 +39,16 @@ race_new |>
   ) +
   theme(legend.position = "bottom")
 
-Current_smokers <- race_new %>%
-  filter(smoking_status = "current")
-
-race_new %>%
-  filter(smoking_status == "Current") %>%
-  ggplot(aes(x = age, y = bmi)) +
-  geom_point(color = "darkred", size = 4, alpha = 0.5) +
-  geom_smooth(method = "lm", linewidth = 2)
-
-
 
 #plotting the ages of patients (scatterplots)
 race_new <- mutate(SCD,
-                   age = 2026 - birth_year)
-
-Race = select(race_new, race, age)
-
-
-race_new$age_group <- cut(
-  race_new$age,
-  breaks = seq(0, 100, by = 10),
-  right = FALSE
-)
-
-#get different races
-unique(SCD$race)
+                   current_age = 2026 - birth_year)
 
 #Line chart Comparison WvB
 race_new |>
   filter(race %in% c(
     "White","Black or African American")) |>
-  ggplot(aes(x = age, y = bmi, color = race)) +
+  ggplot(aes(x = age_at_visit, y = bmi, color = race)) +
   stat_summary(fun = mean, geom = "line", linewidth = 1) +
   scale_color_brewer(palette = "Set1") +
   labs(
@@ -90,46 +62,52 @@ race_new |>
 
 # White
 # 51.7
-# 68
+# 61
 Highest_White <- race_new %>%
-  select(race,bmi, age) %>%
+  select(race,bmi, age_at_visit) %>%
   filter(race == "White") %>%
   arrange(desc(bmi)) %>%
   head(1)
+
+print(Highest_White)
 
 # race: White
 # bmi: 12.8
-# age: 55
+# age: 50
 Lowest_White <- race_new %>%
-  select(race,bmi, age) %>%
+  select(race,bmi, age_at_visit) %>%
   filter(race == "White") %>%
   arrange(bmi) %>%
   head(1)
 
+print(Lowest_White)
+
 # race: Black or African American
 # bmi: 51.7
-# age:82
+# age: 77
 Highest_Black <- race_new %>%
-  select(race,bmi, age) %>%
+  select(race,bmi, age_at_visit) %>%
   filter(race == "Black or African American") %>%
   arrange(desc(bmi)) %>%
   head(1)
 
+print(Highest_Black)
 
 # race: Black or African American
 # bmi: 12.6
-# age: 57
+# age: 53
 Lowest_Black <- race_new %>%
-  select(race,bmi, age) %>%
+  select(race,bmi, age_at_visit) %>%
   filter(race == "Black or African American") %>%
   arrange(bmi) %>%
   head(1)
 
-#68 years old whites
+print(Lowest_Black)
+#61 years old whites
 WW <- race_new %>%
   filter(race == "White",
          smoking_status == "Never",
-         age == 68)
+         age_at_visit == 61)
 
 Alcohol <- WW %>%
   count(alcohol_use) %>%
@@ -146,23 +124,14 @@ ggplot(Alcohol, aes(x = "", y = prop, fill = factor(alcohol_use))) +
     fill = "Alcohol Use"
   ) +
   theme_void()
-WW$physical_activity_level
+
+
 
 PA <- WW %>%
   count(physical_activity_level) %>%
   mutate(prop = n / sum(n),
          percent = prop * 100)
 
-ggplot(PA, aes(x = "", y = prop, fill = factor(physical_activity_level))) +
-  geom_col(width = 1) +
-  coord_polar(theta = "y") +
-  geom_text(aes(label = paste0(round(percent, 1), "%")),
-            position = position_stack(vjust = 0.5)) +
-  labs(
-    title = "Physical Activity Amongst 68 Years Old Whites",
-    fill = "Physical Activity"
-  ) +
-  theme_void()
 
 WW |>
   count(alcohol_use, physical_activity_level) |>
@@ -177,46 +146,24 @@ WW |>
   ) +
   theme_minimal()
 
-#55 years old whites
-W55 <- race_new %>%
+#50 years old whites
+W50 <- race_new %>%
   filter(race == "White",
          smoking_status == "Never",
-         age == 55)
+         age_at_visit == 50)
 
-A55 <- W55 %>%
+A50 <- W50 %>%
   count(alcohol_use) %>%
   mutate(prop = n / sum(n),
          percent = prop * 100)
 
-ggplot(A55, aes(x = "", y = prop, fill = factor(alcohol_use))) +
-  geom_col (width = 1) +
-  coord_polar(theta = "y") +
-  geom_text(aes(label = paste0(round(percent, 1), "%")),
-            position = position_stack(vjust = 0.5)) +
-  labs(
-    title = "Alcohol Use Amongst 55 Years Old Whites",
-    fill = "Alcohol Use"
-  ) +
-  theme_void()
-WW$physical_activity_level
-
-PA55 <- W55 %>%
+PA50 <- W50 %>%
   count(physical_activity_level) %>%
   mutate(prop = n / sum(n),
          percent = prop * 100)
 
-ggplot(PA55, aes(x = "", y = prop, fill = factor(physical_activity_level))) +
-  geom_col(width = 1) +
-  coord_polar(theta = "y") +
-  geom_text(aes(label = paste0(round(percent, 1), "%")),
-            position = position_stack(vjust = 0.5)) +
-  labs(
-    title = "Physical Activity Amongst 55 Years Old Whites",
-    fill = "Physical Activity"
-  ) +
-  theme_void()
 
-W55 |>
+W50 |>
   count(alcohol_use, physical_activity_level) |>
   ggplot(aes(x = alcohol_use, y = n, 
              fill = physical_activity_level)) + 
@@ -254,8 +201,19 @@ race_new |>
   ) +
   theme(legend.position = "bottom")
 
+#Profession by pain score
+# reorder changes order of bar chart, not arrange
+pp_data <- SCD %>%
+  group_by(profession) %>%
+  summarise(avg_pain = mean(patient_reported_pain_score, na.rm = TRUE)) %>%
+  arrange(desc(avg_pain))
 
-library(GGally)
-race_new |> 
-  select(age, bmi) |> 
-  ggpairs()
+ggplot(plot_data, aes(x = reorder(profession, avg_pain), y = avg_pain, fill = avg_pain)) +
+  geom_col() +
+  scale_fill_gradient(low = "lightblue", high = "darkred") +
+  labs(
+    title = "Average Pain Score for Top 5 Professions",
+    x = "Profession",
+    y = "Average Pain Score"
+  ) +
+  coord_flip()
