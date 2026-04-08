@@ -1,0 +1,266 @@
+---
+title: "You Have an Appointment!"
+author: "Jada Douthit & Patrick Stephens"
+date: "2026-04-08"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+```
+
+# Agenda
+
+- **Background Information**
+- **Theories and Assumptions**
+- **Findings**
+- **Conclusion**
+
+## Background Information
+
+This project uses a synthetic clinical dataset to explore patient characteristics and health-related trends. Since each row represents a single clinic visit, a single patient may appear multiple times in the dataset. This structure allows us to examine patterns across race, sex, age, BMI, smoking status, alcohol use, physical activity, and profession.
+
+By analyzing these variables together, we aim to better understand potential relationships between demographic factors, lifestyle behaviors, and patient-reported health outcomes. 
+```{r starter}
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+SCD = read.csv("/Volumes/T9/Schoolwork/Project-2/SyntheticClinicalData copy.csv")
+```
+## Theories and Assumptions
+
+For this project, we assumed that certain patient groups would appear more frequently than others, particularly when examining race, sex, and age distributions. We also expected BMI to vary across both age groups and racial categories. Additionally, we assumed that lifestyle factors such as alcohol use and physical activity would show relationships with BMI and overall health patterns.
+
+These assumptions guided the development of our research questions and shaped the direction of our analysis.
+
+## Question 1: Which group represents the largest sample in the dataset when considering race, sex, and age?
+
+Variables Used:
+* Race: Hispanic or Latino, Black or African American, White, Asian, American Indian or Alaska Native
+* Sex: Female, Male, Non-Binary, Unknown
+* Age Groups: Categorized by age of patient during visit
+
+Findings:
+The visualizations (bar charts, including stacked and horizontal formats) display the distribution of patients across race, sex, and age groups. These charts help identify which populations are most represented in the dataset and provide a foundational understanding of the sample composition. This allows for clearer comparisons across demographic groups in later analyses.
+
+### Smoking Status by Gender
+```{r race_plot}
+colnames(SCD)
+
+unique(SCD$race)
+
+Race_table = table(SCD$race)
+
+#convert to percentages
+race_data <- SCD %>%
+  count(race) %>%
+  mutate(
+    percent = (n / sum(n)) * 100)
+
+race_data |>
+  ggplot(aes(y = race, x = percent, fill = race)) +
+  geom_col()
+```
+
+```{r smoking_plot}
+#percentage of sex & smoking status
+unique(SCD$gender)
+
+sex_table = table(SCD$gender)
+
+SCD |>
+  count(smoking_status, gender) |>
+  ggplot(aes(x = smoking_status, y = n, 
+             fill = gender)) +
+  geom_col() +
+  labs(
+    title = "Gender vs. Smoking Status",
+    x = "Smoking Status",
+    y = "count"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+
+### BMI vs Age vs Race
+
+This analysis examines how average BMI changes across age groups while comparing racial categories. The line graph helps illustrate whether BMI trends increase, decrease, or remain stable as age progresses, and whether these patterns differ across racial groups.
+
+In this project, we focused primarily on White and Black or African American patients to provide a clear comparison of trend patterns between two major groups.
+```{r WvsB_plot}
+race_new <- mutate(SCD,
+                   current_age = 2026 - birth_year)
+race_new |>
+  filter(race %in% c(
+    "White","Black or African American")) |>
+  ggplot(aes(x = age_at_visit, y = bmi, color = race)) +
+  stat_summary(fun = mean, geom = "line", linewidth = 1) +
+  scale_color_brewer(palette = "Set1") +
+  labs(
+    title = "BMI vs Age by Race",
+    x = "Age",
+    y = "Average BMI"
+  ) +
+  theme(legend.position = "bottom")
+```
+## Question 2: How does BMI relate to alcohol use and physical activity levels, and how do individuals with the highest and lowest BMI differ across these lifestyle factors?
+
+### Highest and Lowest by Race
+```{r HvsL}
+#highest and lowest by race
+
+# White
+# 51.7
+# 61
+Highest_White <- race_new %>%
+  select(race,bmi, age_at_visit) %>%
+  filter(race == "White") %>%
+  arrange(desc(bmi)) %>%
+  head(1)
+
+print(Highest_White)
+
+# race: White
+# bmi: 12.8
+# age: 50
+Lowest_White <- race_new %>%
+  select(race,bmi, age_at_visit) %>%
+  filter(race == "White") %>%
+  arrange(bmi) %>%
+  head(1)
+
+print(Lowest_White)
+
+# race: Black or African American
+# bmi: 51.7
+# age: 77
+Highest_Black <- race_new %>%
+  select(race,bmi, age_at_visit) %>%
+  filter(race == "Black or African American") %>%
+  arrange(desc(bmi)) %>%
+  head(1)
+
+print(Highest_Black)
+
+# race: Black or African American
+# bmi: 12.6
+# age: 53
+Lowest_Black <- race_new %>%
+  select(race,bmi, age_at_visit) %>%
+  filter(race == "Black or African American") %>%
+  arrange(bmi) %>%
+  head(1)
+
+print(Lowest_Black)
+```
+
+### 61-Year-Old White Patients (Never Smokers)
+
+For 61-year-old White patients who never smoked, we examined alcohol use and physical activity patterns. This age group provides insight into lifestyle behaviors later in adulthood. The visualizations help show whether alcohol consumption and physical activity cluster within specific categories for older adults.
+
+Based on general expectations, this group may show greater variation in alcohol use while exhibiting lower levels of physical activity compared to younger populations.
+```{r 61YO}
+# 61 year old whites
+WW <- race_new %>%
+  filter(race == "White",
+         smoking_status == "Never",
+         age_at_visit == 61)
+
+Alcohol <- WW %>%
+  count(alcohol_use) %>%
+  mutate(prop = n / sum(n),
+         percent = prop * 100)
+
+
+PA <- WW %>%
+  count(physical_activity_level) %>%
+  mutate(prop = n / sum(n),
+         percent = prop * 100)
+
+
+WW |>
+  count(alcohol_use, physical_activity_level) |>
+  ggplot(aes(x = alcohol_use, y = n, 
+             fill = physical_activity_level)) + 
+  geom_col(position = "dodge")+
+  labs(
+    title = "Physical Activity by Alcohol Use",
+    x = "Alcohol Use",
+    y = "Proportion",
+    fill = "Physical Activity"
+  ) +
+  theme_minimal()
+```
+### 50-Year-Old White Patients (Never Smokers)
+
+For 50-year-old White patients who never smoked, the same comparison was conducted to evaluate differences between middle-aged and older adults. This allows for a direct comparison of lifestyle behaviors across age groups.
+
+It is expected that the 50-year-old group may show slightly higher physical activity levels compared to the older group, while alcohol use may still vary across categories.
+```{r 50 YO}
+#50 years old whites
+W50 <- race_new %>%
+  filter(race == "White",
+         smoking_status == "Never",
+         age_at_visit == 50)
+
+A50 <- W50 %>%
+  count(alcohol_use) %>%
+  mutate(prop = n / sum(n),
+         percent = prop * 100)
+
+PA50 <- W50 %>%
+  count(physical_activity_level) %>%
+  mutate(prop = n / sum(n),
+         percent = prop * 100)
+
+
+W50 |>
+  count(alcohol_use, physical_activity_level) |>
+  ggplot(aes(x = alcohol_use, y = n, 
+             fill = physical_activity_level)) + 
+  geom_col(position = "dodge")+
+  labs(
+    title = "Physical Activity by Alcohol Use",
+    x = "Alcohol Use",
+    y = "Proportion",
+    fill = "Physical Activity"
+  ) +
+  theme_minimal()
+```
+
+##Question 3: How does a patient’s profession relate to their self-reported pain score?
+
+### Profession vs Average Pain Score
+For patients across different professions in the SCD dataset, we analyzed patient-reported pain scores to determine whether occupation is associated with differences in reported pain levels. This comparison helps highlight potential variation in pain experience across occupational groups.
+
+The visualizations provide insight into whether certain professions tend to report higher or lower average pain scores. We might expect some variation based on differences in physical demands, stress levels, or working conditions across job categories.
+```{r profession}
+pp_data <- SCD %>%
+  group_by(profession) %>%
+  summarise(avg_pain = mean(patient_reported_pain_score, na.rm = TRUE)) %>%
+  arrange(desc(avg_pain))
+
+ggplot(pp_data, aes(x = reorder(profession, avg_pain), y = avg_pain, fill = avg_pain)) +
+  geom_col() +
+  scale_fill_gradient(low = "lightblue", high = "darkred") +
+  labs(
+    title = "Average Pain Score for Top 5 Professions",
+    x = "Profession",
+    y = "Average Pain Score"
+  ) +
+  coord_flip()
+```
+
+## Conclusion
+This analysis explored relationships between demographic characteristics, lifestyle behaviors, and patient-reported health outcomes using a synthetic clinical dataset. Across all research questions, we identified patterns in how variables such as race, age, BMI, profession, alcohol use, and physical activity interact.
+
+Overall, the results suggest that patient characteristics and lifestyle factors are meaningfully connected and can help explain differences in health-related outcomes such as BMI and pain levels. These findings highlight the importance of considering multiple variables together when analyzing patient health trends.
+
+
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
